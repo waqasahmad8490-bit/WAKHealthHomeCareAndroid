@@ -1,0 +1,64 @@
+name: Build WAK Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Prepare web files
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp admin.html www/
+          cp supabase-config.js www/
+          for f in *.css *.js *.png *.jpg *.jpeg *.svg *.webp; do
+            if [ -f "$f" ]; then
+              cp "$f" www/
+            fi
+          done
+
+      - name: Install Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+
+      - name: Configure Android app
+        run: |
+          npx cap init "WAK Health and Home Care" com.wakhealth.homecare --web-dir=www
+          npx cap add android
+          npx cap sync android
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: WAK-Health-Home-Care-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
