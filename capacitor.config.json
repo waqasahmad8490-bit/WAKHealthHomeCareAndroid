@@ -1,8 +1,0 @@
-{
-  "appId": "pk.wakhealth.homecare",
-  "appName": "WAK Health Home Care",
-  "webDir": "www",
-  "server": {
-    "androidScheme": "https"
-  }
-}
